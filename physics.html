@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIRONOX | Physics Vault</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@100;400;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --physics-green: #00ff88;
+            --atomic-orange: #ffaa00;
+            --void-black: #02040a;
+        }
+
+        body {
+            background-color: var(--void-black);
+            color: #ecf0f1;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* --- Navigation Hub --- */
+        .nav-ring {
+            position: fixed; bottom: 30px; right: 30px; z-index: 1000;
+            width: 60px; height: 60px; background: var(--physics-green);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+            transition: 0.5s;
+        }
+        .nav-ring:hover { transform: scale(1.1) rotate(180deg); }
+        .nav-menu {
+            position: fixed; bottom: 100px; right: 30px; z-index: 999;
+            display: none; flex-direction: column; gap: 15px;
+        }
+        .nav-item {
+            background: rgba(0, 0, 0, 0.95); border: 1px solid var(--physics-green);
+            padding: 12px 25px; border-radius: 4px; color: var(--physics-green);
+            font-size: 10px; font-family: 'Orbitron'; text-transform: uppercase;
+            transition: 0.3s; width: 200px; text-align: center;
+        }
+        .nav-item:hover { background: var(--physics-green); color: black; box-shadow: 0 0 20px var(--physics-green); }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        .glass-panel:hover { border-color: var(--physics-green); }
+
+        /* Input Styles */
+        input {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: var(--physics-green); padding: 6px; font-size: 12px;
+            outline: none; width: 100%;
+        }
+
+        /* Animation for Atom */
+        .atom-container {
+            width: 200px; height: 200px; position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nucleus { width: 30px; height: 30px; background: var(--atomic-orange); border-radius: 50%; box-shadow: 0 0 20px var(--atomic-orange); }
+        .electron-orbit {
+            position: absolute; border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 50%;
+            animation: rotate 4s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="pt-24">
+
+    <div class="nav-ring" onclick="toggleNav()"><span class="text-black text-xl font-black">Ω</span></div>
+    <div class="nav-menu" id="navMenu">
+        <a href="index.html" class="nav-item">00. Command Center</a>
+        <a href="robotics.html" class="nav-item">01. Robotics Lab</a>
+        <a href="aerospace.html" class="nav-item">02. Aerospace Hub</a>
+        <a href="neural.html" class="nav-item">03. Neural Net</a>
+    </div>
+
+    <nav class="fixed top-0 w-full bg-black/90 backdrop-blur-md border-b border-physics-green/20 px-10 py-4 flex justify-between items-center z-50">
+        <div class="flex items-center space-x-4">
+            <div class="w-10 h-10 border border-physics-green flex items-center justify-center font-bold text-physics-green">Φ</div>
+            <h1 class="font-orbitron text-xl tracking-[0.3em]">AEGIRONOX <span class="text-physics-green">PHYSICS</span></h1>
+        </div>
+        <div class="flex space-x-10 font-mono text-[10px] text-gray-500 uppercase">
+            <div>Entropy: <span class="text-physics-green">ΔS > 0</span></div>
+            <div>Light_Speed: <span class="text-physics-green">299,792,458 m/s</span></div>
+        </div>
+    </nav>
+
+    <main class="px-8 md:px-16 space-y-8 pb-24">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="glass-panel p-8" data-aos="fade-right">
+                <h3 class="font-orbitron text-xs text-physics-green mb-8 uppercase tracking-widest border-b border-physics-green/20 pb-2">Kinematics_Simulation_V1</h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase">Initial Velocity (u) m/s</label>
+                            <input type="number" id="initU" value="0">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase">Acceleration (a) m/s²</label>
+                            <input type="number" id="accelA" value="9.8">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase">Time (t) s</label>
+                            <input type="number" id="timeT" value="5">
+                        </div>
+                        <button onclick="solveMotion()" class="w-full py-2 bg-physics-green/10 border border-physics-green text-physics-green text-[10px] font-bold uppercase hover:bg-physics-green hover:text-black transition">Solve Motion</button>
+                    </div>
+                    <div class="bg-black/40 p-6 flex flex-col justify-center border border-white/5">
+                        <p class="text-[10px] text-gray-600 mb-2 uppercase">Resultant Displacement (s)</p>
+                        <h4 id="dispResult" class="text-4xl font-orbitron text-white">122.5</h4>
+                        <p class="text-[9px] text-physics-green mt-4 font-mono">Equation: \(s = ut + \frac{1}{2}at^2\)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-8 flex flex-col items-center justify-center" data-aos="fade-left">
+                <div class="atom-container">
+                    <div class="nucleus"></div>
+                    <div class="electron-orbit w-32 h-32"></div>
+                    <div class="electron-orbit w-48 h-48" style="animation-duration: 6s; border-color: rgba(255,170,0,0.2);"></div>
+                    <div class="electron-orbit w-20 h-20" style="animation-duration: 2s; border-color: rgba(0,255,136,0.6);"></div>
+                </div>
+                <div class="mt-6 text-center">
+                    <h4 class="font-orbitron text-xs text-atomic-orange uppercase">Quantum_Model_Active</h4>
+                    <p class="text-[9px] text-gray-600 font-mono mt-2">Simulating Electron Probability Density</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            
+            <div class="xl:col-span-8 glass-panel h-[400px] flex flex-col" data-aos="fade-up">
+                <div class="p-3 bg-physics-green/10 flex justify-between font-mono text-[9px]">
+                    <span>physics@aegironox_vault:~$ formula_lookup --all</span>
+                    <span class="text-physics-green">READY</span>
+                </div>
+                <div id="physics-terminal" class="p-6 overflow-y-auto flex-grow font-mono text-[11px] space-y-3">
+                    <p class="text-physics-green">[SYSTEM] Physics formula engine online.</p>
+                    <p class="text-gray-500">Type 'newton', 'einstein', or 'planck' to see core equations.</p>
+                </div>
+                <div class="p-4 border-t border-white/5 flex items-center">
+                    <span class="text-physics-green mr-2">></span>
+                    <input type="text" id="physInput" class="bg-transparent border-none w-full text-white text-xs outline-none" placeholder="Enter Researcher Name..." onkeypress="runPhysCmd(event)">
+                </div>
+            </div>
+
+            <div class="xl:col-span-4 glass-panel p-8" data-aos="fade-left">
+                <h3 class="font-orbitron text-[10px] text-physics-green mb-6 uppercase tracking-widest">Scientific_Constants</h3>
+                <div class="space-y-4 font-mono text-[10px]">
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <span class="text-gray-600">Gravitational Constant (G)</span>
+                        <span class="text-white">6.674e-11</span>
+                    </div>
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <span class="text-gray-600">Planck Constant (h)</span>
+                        <span class="text-white">6.626e-34</span>
+                    </div>
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <span class="text-gray-600">Boltzmann (k)</span>
+                        <span class="text-white">1.380e-23</span>
+                    </div>
+                    <div class="mt-10 p-4 border border-dashed border-physics-green/30">
+                        <p class="text-[9px] text-gray-500 italic text-center">"Science is not only a disciple of reason but, also, one of romance and passion." — Stephen Hawking</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="mt-12 glass-panel p-10" data-aos="fade-up">
+            <h2 class="font-orbitron text-xl text-white mb-8 border-b border-physics-green/30 pb-4 uppercase">Advanced Theoretical Repository</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 font-mono text-[11px] leading-relaxed text-gray-500">
+                <div class="space-y-4">
+                    <h4 class="text-physics-green font-bold uppercase"># Special Relativity</h4>
+                    <p>Understanding time dilation and length contraction. The core equation \(E = mc^2\) defines the mass-energy equivalence, essential for understanding nuclear propulsion in aerospace.</p>
+                    
+                </div>
+                <div class="space-y-4">
+                    <h4 class="text-atomic-orange font-bold uppercase"># Fluid Dynamics</h4>
+                    <p>Bernoulli's Principle: \(P + \frac{1}{2}\rho v^2 + \rho gh = \text{constant}\). This explains how lift is generated on airfoils, a bridge between pure physics and your aerospace goals.</p>
+                    
+                </div>
+                <div class="space-y-4">
+                    <h4 class="text-blue-400 font-bold uppercase"># Electromagnetism</h4>
+                    <p>Maxwell's Equations form the basis of all modern communication and sensor tech (LiDAR/Radar). Understanding how electromagnetic waves propagate is key for deep space telemetry.</p>
+                    
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="py-10 px-10 border-t border-white/5 bg-black/50 text-[10px] font-mono text-gray-600 flex justify-between">
+        <p>© 2026 AEGIRONOX PHYSICS VAULT // COMMANDER RUSHAFI</p>
+        <p>STATUS: UNIVERSE_EXPLORING</p>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1000, once: true });
+
+        function toggleNav() {
+            const m = document.getElementById('navMenu');
+            m.style.display = (m.style.display === 'flex' ? 'none' : 'flex');
+        }
+
+        // Functional Kinematics Solver
+        function solveMotion() {
+            const u = parseFloat(document.getElementById('initU').value);
+            const a = parseFloat(document.getElementById('accelA').value);
+            const t = parseFloat(document.getElementById('timeT').value);
+            
+            const s = (u * t) + (0.5 * a * t * t);
+            document.getElementById('dispResult').innerText = s.toFixed(2);
+        }
+
+        // Physics Terminal Commands
+        function runPhysCmd(e) {
+            if(e.key === 'Enter') {
+                const term = document.getElementById('physics-terminal');
+                const val = e.target.value.toLowerCase();
+                const log = document.createElement('p');
+                log.innerHTML = `<span class="text-gray-700">> lookup ${val}</span>`;
+                term.appendChild(log);
+                
+                const res = document.createElement('p');
+                res.className = "text-white";
+                if(val === 'newton') res.innerText = "F = ma (Second Law of Motion)";
+                else if(val === 'einstein') res.innerText = "E = mc² (Mass-Energy Equivalence)";
+                else if(val === 'planck') res.innerText = "E = hf (Photon Energy)";
+                else res.innerText = "[DATA_NOT_FOUND] Command researcher unknown.";
+                
+                term.appendChild(res);
+                e.target.value = "";
+                term.scrollTop = term.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>

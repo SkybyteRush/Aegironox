@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIRONOX | Final Orbit Clock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #050505;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* মূল ঘড়ির ফ্রেম */
+        .clock {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: #080808;
+            border: 2px solid rgba(0, 229, 255, 0.1);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* সেন্টার পয়েন্ট */
+        .center-axis {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #00e5ff;
+            border-radius: 50%;
+            z-index: 50;
+            box-shadow: 0 0 15px #00e5ff;
+        }
+
+        /* কাঁটাগুলোর কমন স্টাইল */
+        .hand {
+            position: absolute;
+            bottom: 50%; /* একদম মাঝখান থেকে শুরু হবে */
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px;
+            transform: translateX(-50%);
+        }
+
+        .hour { width: 8px; height: 25%; background: white; z-index: 10; }
+        .min  { width: 5px; height: 38%; background: #888; z-index: 9; }
+        .sec  { width: 2px; height: 45%; background: #ff0055; z-index: 11; box-shadow: 0 0 10px #ff0055; }
+
+        /* মার্কারগুলোর জন্য ফিক্সড পজিশনিং */
+        .marker-wrapper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .marker {
+            position: absolute;
+            width: 2px;
+            height: 12px;
+            background: #222;
+            transform-origin: center 200px; /* কন্টেইনারের অর্ধেক (400/2) */
+        }
+
+        .marker.large {
+            width: 4px;
+            height: 20px;
+            background: #00e5ff;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+        }
+
+        .brand {
+            position: absolute;
+            top: 30%;
+            color: #00e5ff;
+            font-size: 14px;
+            letter-spacing: 4px;
+            opacity: 0.8;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clock">
+        <div class="brand tracking-widest">AEGIRONOX</div>
+        
+        <div id="marker-container" class="marker-wrapper"></div>
+
+        <div class="hand hour" id="h-hand"></div>
+        <div class="hand min" id="m-hand"></div>
+        <div class="hand sec" id="s-hand"></div>
+        
+        <div class="center-axis"></div>
+    </div>
+
+    <script>
+        // মার্কারগুলো স্ক্রিপ্ট দিয়ে তৈরি করা হচ্ছে যেন নিখুঁত হয়
+        const container = document.getElementById('marker-container');
+        for (let i = 0; i < 60; i++) {
+            const m = document.createElement('div');
+            m.className = i % 5 === 0 ? 'marker large' : 'marker';
+            m.style.transform = `rotate(${i * 6}deg)`;
+            container.appendChild(m);
+        }
+
+        function update() {
+            const date = new Date();
+            const s = date.getSeconds();
+            const m = date.getMinutes();
+            const h = date.getHours();
+
+            // স্মুথ মুভমেন্টের জন্য ক্যালকুলেশন
+            const sDeg = s * 6;
+            const mDeg = (m * 6) + (s * 0.1);
+            const hDeg = (h * 30) + (m * 0.5);
+
+            document.getElementById('s-hand').style.transform = `translateX(-50%) rotate(${sDeg}deg)`;
+            document.getElementById('m-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+            document.getElementById('h-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+        }
+
+        setInterval(update, 1000);
+        update();
+    </script>
+</body>
+</html>

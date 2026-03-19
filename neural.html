@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIRONOX | Neural Intelligence Core</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@100;400;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+
+    <style>
+        :root {
+            --neural-pink: #ff00ff;
+            --neural-purple: #9d00ff;
+            --deep-black: #05000a;
+        }
+
+        body {
+            background-color: var(--deep-black);
+            color: #d8b4fe;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: hidden;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* --- Navigation Hub --- */
+        .nav-ring {
+            position: fixed; bottom: 30px; right: 30px; z-index: 1000;
+            width: 60px; height: 60px; background: var(--neural-pink);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 0 30px var(--neural-pink);
+            transition: 0.5s;
+        }
+        .nav-ring:hover { transform: scale(1.1) rotate(45deg); }
+        
+        .nav-menu {
+            position: fixed; bottom: 100px; right: 30px; z-index: 999;
+            display: none; flex-direction: column; gap: 15px;
+        }
+        .nav-item {
+            background: rgba(0, 0, 0, 0.9); border: 1px solid var(--neural-pink);
+            padding: 12px 25px; border-radius: 4px; color: var(--neural-pink);
+            font-size: 10px; font-family: 'Orbitron'; text-transform: uppercase;
+            transition: 0.3s; width: 220px; text-align: center;
+        }
+        .nav-item:hover { background: var(--neural-pink); color: black; box-shadow: 0 0 20px var(--neural-pink); }
+
+        /* Neural Canvas Layout */
+        #p5-canvas-container {
+            width: 100%; height: 350px; background: rgba(255, 0, 255, 0.02);
+            border: 1px solid rgba(255, 0, 255, 0.1); border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .glass-module {
+            background: rgba(15, 0, 25, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 0, 255, 0.1);
+        }
+
+        input[type="range"] { accent-color: var(--neural-pink); }
+
+        /* GLITCH EFFECT */
+        .glitch { animation: glitch 1s linear infinite; }
+        @keyframes glitch {
+            2%, 64% { transform: translate(2px,0) skew(0deg); }
+            4%, 60% { transform: translate(-2px,0) skew(0deg); }
+            62% { transform: translate(0,0) skew(5deg); }
+        }
+    </style>
+</head>
+<body class="pt-24">
+
+    <div class="nav-ring" onclick="toggleNav()"><span class="text-black text-2xl font-black">N</span></div>
+    <div class="nav-menu" id="navMenu">
+        <a href="index.html" class="nav-item">00. Global Core</a>
+        <a href="robotics.html" class="nav-item">01. Robotics Link</a>
+        <a href="aerospace.html" class="nav-item">02. Aerospace Link</a>
+        <a href="physics.html" class="nav-item">03. Physics Link</a>
+    </div>
+
+    <nav class="fixed top-0 w-full bg-black/90 backdrop-blur-md border-b border-purple-900/30 px-10 py-4 flex justify-between items-center z-50">
+        <div class="flex items-center space-x-4">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 animate-pulse"></div>
+            <h1 class="font-orbitron text-xl tracking-[0.4em] text-white">AEGIRONOX <span class="text-pink-500">NEURAL</span></h1>
+        </div>
+        <div class="font-mono text-[9px] text-pink-400 uppercase hidden md:block">
+            <span class="mr-6">Synaptic_Load: 42%</span>
+            <span>Neural_Pathways: ACTIVE</span>
+        </div>
+    </nav>
+
+    <main class="px-8 md:px-20 space-y-10 pb-32">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div class="lg:col-span-8 space-y-6">
+                <div class="glass-module p-6" data-aos="fade-right">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-orbitron text-xs text-pink-500 uppercase tracking-widest">Neural_Architecture_Viz</h3>
+                        <span class="text-[9px] font-mono text-gray-500">LIVE_P5_RENDER</span>
+                    </div>
+                    <div id="p5-canvas-container"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass-module p-8" data-aos="fade-left">
+                    <h3 class="font-orbitron text-xs text-purple-400 mb-8 uppercase tracking-widest">Training_Params</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-[10px] mb-2 font-mono"><span>LEARNING_RATE</span><span id="lr-val">0.001</span></div>
+                            <input type="range" min="0.0001" max="0.1" step="0.0001" value="0.001" class="w-full" oninput="updateParams('lr', this.value)">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] mb-2 font-mono"><span>EPOCHS</span><span id="ep-val">500</span></div>
+                            <input type="range" min="10" max="2000" step="10" value="500" class="w-full" oninput="updateParams('ep', this.value)">
+                        </div>
+                        <button class="w-full py-3 bg-pink-600/10 border border-pink-500 text-pink-500 font-orbitron text-[10px] uppercase hover:bg-pink-600 hover:text-white transition mt-4" onclick="initiateTraining()">Initiate Neural Training</button>
+                    </div>
+                </div>
+
+                <div class="glass-module p-6 border-l-4 border-l-pink-500">
+                    <h4 class="text-[10px] font-bold text-white mb-2 uppercase">Core_Identity</h4>
+                    <p class="text-[9px] text-gray-400 font-mono leading-relaxed">This neural core is designed to bridge the gap between ESP32 Robotics and Aerospace Physics calculations using Deep Learning models.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
+            <div class="xl:col-span-2 glass-module h-[450px] flex flex-col" data-aos="zoom-in">
+                <div class="p-4 bg-white/5 border-b border-white/5 flex justify-between font-mono text-[9px] text-pink-300">
+                    <span>user@aegironox_neural:~/network$</span>
+                    <span class="animate-pulse">TERMINAL_ONLINE</span>
+                </div>
+                <div id="neural-terminal" class="p-6 overflow-y-auto flex-grow font-mono text-[11px] space-y-3 text-purple-200">
+                    <p class="text-pink-500">[SYSTEM] Synaptic weights initialized with Xavier distribution.</p>
+                    <p>[INFO] Hidden Layers: 4 | Neurons: 128, 64, 32, 16</p>
+                </div>
+                <div class="p-4 border-t border-white/5 flex">
+                    <span class="text-pink-500 mr-2">></span>
+                    <input type="text" id="neuralInput" class="bg-transparent border-none w-full text-white text-xs outline-none" placeholder="Query Neural Net..." onkeypress="runNeuralCmd(event)">
+                </div>
+            </div>
+
+            <div class="glass-module p-8" data-aos="fade-left">
+                <h3 class="font-orbitron text-[10px] text-pink-500 mb-8 uppercase tracking-widest">Model_Metrics</h3>
+                <div class="space-y-8">
+                    <div class="text-center">
+                        <p class="text-[9px] text-gray-500 mb-1">ACCURACY</p>
+                        <h4 id="accuracy-stat" class="text-5xl font-orbitron text-white">94.8<span class="text-xs text-pink-500">%</span></h4>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-[10px]"><span>LOSS_RATE:</span><span class="text-red-500">0.024</span></div>
+                        <div class="w-full h-1 bg-white/5"><div class="h-full bg-pink-500" style="width: 94%"></div></div>
+                        <div class="flex justify-between text-[10px]"><span>LATENCY:</span><span class="text-green-500">12ms</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="glass-module p-12" data-aos="fade-up">
+            <h2 class="font-orbitron text-2xl text-white mb-10 border-b border-pink-900/50 pb-4">Artificial Intelligence Repository</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 font-mono text-[11px] leading-relaxed text-purple-300/70">
+                <div class="space-y-4">
+                    <h4 class="text-pink-400 font-bold uppercase underline"># Activation Functions</h4>
+                    <p>In Aegironox, we primarily use ReLU (Rectified Linear Unit) for hidden layers to prevent the vanishing gradient problem. For the output layer in classification, Softmax is used: \(\sigma(z)_i = \frac{e^{z_i}}{\sum e^{z_j}}\).</p>
+                    
+                </div>
+                <div class="space-y-4">
+                    <h4 class="text-purple-400 font-bold uppercase underline"># Backpropagation</h4>
+                    <p>The core of our learning process is Gradient Descent. We calculate the derivative of the loss function with respect to each weight using the chain rule. This allows the network to "learn" from its mistakes in every epoch.</p>
+                    
+                </div>
+                <div class="space-y-4">
+                    <h4 class="text-pink-600 font-bold uppercase underline"># Convolutional Neural Nets</h4>
+                    <p>For Robotics vision, CNNs are essential. They use filters to detect edges, textures, and eventually objects in the LiDAR or camera feed, enabling the autonomous rover to navigate without collisions.</p>
+                    
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1000, once: true });
+
+        function toggleNav() {
+            const m = document.getElementById('navMenu');
+            m.style.display = (m.style.display === 'flex' ? 'none' : 'flex');
+        }
+
+        function updateParams(type, val) {
+            document.getElementById(`${type}-val`).innerText = val;
+        }
+
+        // p5.js Neural Background
+        let nodes = [];
+        function setup() {
+            let canvas = createCanvas(windowWidth * 0.6, 350);
+            canvas.parent('p5-canvas-container');
+            for(let i=0; i<50; i++) nodes.push(new Node());
+        }
+
+        function draw() {
+            background(5, 0, 10, 20);
+            nodes.forEach(n => {
+                n.update();
+                n.show();
+                nodes.forEach(other => {
+                    let d = dist(n.pos.x, n.pos.y, other.pos.x, other.pos.y);
+                    if(d < 100) {
+                        stroke(255, 0, 255, map(d, 0, 100, 100, 0));
+                        line(n.pos.x, n.pos.y, other.pos.x, other.pos.y);
+                    }
+                });
+            });
+        }
+
+        class Node {
+            constructor() {
+                this.pos = createVector(random(width), random(height));
+                this.vel = createVector(random(-0.5, 0.5), random(-0.5, 0.5));
+            }
+            update() {
+                this.pos.add(this.vel);
+                if(this.pos.x < 0 || this.pos.x > width) this.vel.x *= -1;
+                if(this.pos.y < 0 || this.pos.y > height) this.vel.y *= -1;
+            }
+            show() {
+                noStroke(); fill(255, 0, 255, 150);
+                ellipse(this.pos.x, this.pos.y, 4);
+            }
+        }
+
+        // Terminal & Logic
+        function initiateTraining() {
+            const term = document.getElementById('neural-terminal');
+            term.innerHTML += `<p class="text-yellow-500">[START] Epoch 1: Loss 0.892 Accuracy 12%</p>`;
+            let acc = 12;
+            let interval = setInterval(() => {
+                acc += Math.random() * 5;
+                if(acc >= 94) {
+                    acc = 94.8;
+                    clearInterval(interval);
+                    term.innerHTML += `<p class="text-green-500">[SUCCESS] Model trained. Final Accuracy: 94.8%</p>`;
+                }
+                document.getElementById('accuracy-stat').innerHTML = acc.toFixed(1) + '<span class="text-xs text-pink-500">%</span>';
+                term.scrollTop = term.scrollHeight;
+            }, 100);
+        }
+
+        function runNeuralCmd(e) {
+            if(e.key === 'Enter') {
+                const term = document.getElementById('neural-terminal');
+                const val = e.target.value.toLowerCase();
+                const log = document.createElement('p');
+                log.innerHTML = `<span class="text-gray-600">> ${val}</span>`;
+                term.appendChild(log);
+                
+                const res = document.createElement('p');
+                res.className = "text-white";
+                if(val.includes('analyze')) res.innerText = "[OK] Pattern recognition match: 92.1% similarity to Aerospace flight data.";
+                else if(val === 'status') res.innerText = "[OK] All 4 hidden layers active. Optimization: Adam.";
+                else res.innerText = "[ERR] NEURAL_QUERY_UNDEF. Try 'analyze' or 'status'.";
+                
+                term.appendChild(res);
+                e.target.value = "";
+                term.scrollTop = term.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>

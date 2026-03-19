@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIRONOX | Aerospace Mission Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@100;400;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --space-blue: #0066ff;
+            --plasma-purple: #a855f7;
+            --warning-orange: #f97316;
+            --deep-void: #020205;
+        }
+
+        body {
+            background-color: var(--deep-void);
+            color: #f1f5f9;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(1px 1px at 25px 5px, white, rgba(255,255,255,0)),
+                radial-gradient(1px 1px at 50px 100px, white, rgba(255,255,255,0)),
+                radial-gradient(1px 1px at 125px 25px, white, rgba(255,255,255,0));
+            background-size: 200px 200px;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* --- Navigation Hub --- */
+        .nav-ring {
+            position: fixed; bottom: 30px; right: 30px; z-index: 1000;
+            width: 60px; height: 60px; background: var(--space-blue);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 0 30px rgba(0, 102, 255, 0.4);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .nav-ring:hover { transform: scale(1.1) rotate(-90deg); }
+        .nav-menu {
+            position: fixed; bottom: 100px; right: 30px; z-index: 999;
+            display: none; flex-direction: column; gap: 15px;
+        }
+        .nav-item {
+            background: rgba(0, 0, 0, 0.95); border: 1px solid var(--space-blue);
+            padding: 12px 25px; border-radius: 4px; color: var(--space-blue);
+            font-size: 10px; font-family: 'Orbitron'; text-transform: uppercase;
+            transition: 0.3s; width: 200px; text-align: center; backdrop-filter: blur(10px);
+        }
+        .nav-item:hover { background: var(--space-blue); color: white; box-shadow: 0 0 20px var(--space-blue); }
+
+        /* --- Glass Cards --- */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 102, 255, 0.1);
+            position: relative;
+        }
+        .glass-panel::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--space-blue), transparent);
+        }
+
+        /* --- Input Styles --- */
+        input[type="number"] {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0, 102, 255, 0.2);
+            color: var(--space-blue); padding: 4px 8px; font-size: 12px; outline: none;
+        }
+
+        /* --- Orbital Viz Animation --- */
+        .orbital-view {
+            width: 250px; height: 250px; border-radius: 50%;
+            border: 1px dashed rgba(255,255,255,0.1);
+            position: relative; animation: spin 20s linear infinite;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .earth {
+            width: 80px; height: 80px; background: radial-gradient(circle, #0066ff, #001133);
+            border-radius: 50%; box-shadow: 0 0 40px rgba(0, 102, 255, 0.5);
+        }
+
+        .rocket-dot {
+            width: 8px; height: 8px; background: white; border-radius: 50%;
+            position: absolute; top: -4px; left: 50%; box-shadow: 0 0 10px white;
+        }
+    </style>
+</head>
+<body class="pt-24">
+
+    <div class="nav-ring" onclick="toggleNav()"><span class="text-white text-xl">▲</span></div>
+    <div class="nav-menu" id="navMenu">
+        <a href="index.html" class="nav-item">00. Home Base</a>
+        <a href="robotics.html" class="nav-item">01. Robotics Lab</a>
+        <a href="neural.html" class="nav-item">02. Neural Core</a>
+        <a href="physics.html" class="nav-item">03. Physics Lab</a>
+    </div>
+
+    <nav class="fixed top-0 w-full bg-black/80 backdrop-blur-lg border-b border-white/5 px-10 py-4 flex justify-between items-center z-50">
+        <div class="flex items-center space-x-4">
+            <div class="w-2 h-10 bg-blue-600"></div>
+            <h1 class="font-orbitron text-xl tracking-[0.2em]">AEGIRONOX <span class="text-blue-500">AERO</span></h1>
+        </div>
+        <div class="flex space-x-10 font-mono text-[10px] tracking-widest text-gray-400">
+            <div>APOGEE: <span class="text-white">408 KM</span></div>
+            <div>PERIGEE: <span class="text-white">402 KM</span></div>
+            <div>VELOCITY: <span id="v-data" class="text-green-500">7.66 KM/S</span></div>
+        </div>
+    </nav>
+
+    <main class="px-8 md:px-16 space-y-8 pb-20">
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            
+            <div class="glass-panel p-8" data-aos="fade-right">
+                <h3 class="font-orbitron text-xs text-blue-400 mb-8 uppercase tracking-widest">Dynamics_Calculator</h3>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <label class="text-[10px] uppercase text-gray-500">Thrust (kN)</label>
+                        <input type="number" id="thrustInput" value="7600" oninput="calcAero()">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label class="text-[10px] uppercase text-gray-500">Mass (kg)</label>
+                        <input type="number" id="massInput" value="549054" oninput="calcAero()">
+                    </div>
+                    <div class="mt-10 p-4 bg-blue-900/10 border border-blue-500/20 rounded">
+                        <p class="text-[9px] text-blue-500 mb-1 font-bold">CALCULATED_TWR</p>
+                        <h4 id="twrResult" class="text-3xl font-orbitron text-white">1.41</h4>
+                        <p id="twrStatus" class="text-[8px] mt-2 text-green-500">STATUS: GO FOR LIFT-OFF</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-8 flex flex-col items-center justify-center relative overflow-hidden" data-aos="zoom-in">
+                <div class="absolute top-4 left-4 font-mono text-[9px] text-gray-600">ORBITAL_VIZ_ACTIVE</div>
+                <div class="orbital-view flex items-center justify-center">
+                    <div class="rocket-dot"></div>
+                </div>
+                <div class="earth absolute"></div>
+                <div class="mt-8 text-center">
+                    <p class="text-[10px] text-blue-400 font-bold">ISS_TRACKER_SYNC</p>
+                    <p class="text-[9px] text-gray-500">Inclination: 51.64°</p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-8" data-aos="fade-left">
+                <h3 class="font-orbitron text-xs text-blue-400 mb-6 uppercase tracking-widest">Altitude_Telemetry</h3>
+                <div class="h-48 w-full">
+                    <canvas id="aeroChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-8 glass-panel h-[400px] flex flex-col" data-aos="fade-up">
+                <div class="p-3 bg-blue-900/20 flex justify-between font-mono text-[9px]">
+                    <span>cmd@aegironox_mission_control:~$</span>
+                    <span class="text-blue-500">SECURE_LINK</span>
+                </div>
+                <div id="aero-terminal" class="p-6 overflow-y-auto flex-grow font-mono text-[11px] space-y-2 text-gray-400">
+                    <p class="text-blue-400">[SYSTEM] Pre-launch sequencing initiated...</p>
+                    <p>[INFO] Tank pressure: Nominal (4500 PSI)</p>
+                    <p>[INFO] Avionics: GPS Lock acquired. 12 Satellites.</p>
+                </div>
+                <div class="p-4 border-t border-white/5 flex">
+                    <span class="text-blue-500 mr-2">></span>
+                    <input type="text" id="aeroInput" class="bg-transparent border-none w-full text-white text-xs outline-none" placeholder="Enter Telemetry Command..." onkeypress="runAeroCmd(event)">
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 glass-panel p-8" data-aos="fade-left">
+                <h3 class="font-orbitron text-[10px] text-blue-400 mb-6 uppercase tracking-widest">Physics_Constants</h3>
+                <div class="space-y-4 font-mono text-[10px]">
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <span class="text-gray-500">Gravitational Param (μ)</span>
+                        <span>3.986e14 m³/s²</span>
+                    </div>
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <span class="text-gray-500">Standard Gravity (g)</span>
+                        <span>9.806 m/s²</span>
+                    </div>
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <span class="text-gray-500">Kármán Line</span>
+                        <span>100.0 KM</span>
+                    </div>
+                    <div class="mt-10">
+                        <button class="w-full py-3 border border-blue-500/50 text-blue-500 text-[9px] hover:bg-blue-500 hover:text-white transition uppercase font-bold tracking-widest">Analyze Flight Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="mt-20 glass-panel p-10" data-aos="fade-up">
+            <h2 class="font-orbitron text-xl text-white mb-8 border-b border-blue-500/30 pb-4">Aerospace Engineering Repository</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 font-mono text-[11px] leading-relaxed text-gray-400">
+                <div class="p-4 border-l-2 border-blue-900">
+                    <h4 class="text-blue-400 font-bold mb-3 uppercase"># Propulsion Systems</h4>
+                    <p>Researching chemical rockets using RP-1/LOX and Liquid Hydrogen/LOX. Implementation of the Tsiolkovsky rocket equation: $\Delta v = v_e \ln \frac{m_0}{m_f}$ to determine total mission capability and payload efficiency.</p>
+                </div>
+                <div class="p-4 border-l-2 border-purple-900">
+                    <h4 class="text-purple-400 font-bold mb-3 uppercase"># Orbital Mechanics</h4>
+                    <p>Focusing on Hohmann Transfer Orbits and Lagrange Points. Understanding how to utilize gravity assists to minimize fuel consumption for interplanetary travel, specifically for Mars Transfer Orbits (MTO).</p>
+                </div>
+                <div class="p-4 border-l-2 border-orange-900">
+                    <h4 class="text-orange-400 font-bold mb-3 uppercase"># Aerodynamics</h4>
+                    <p>Computational Fluid Dynamics (CFD) analysis for hypersonic re-entry. Designing heat shields using ablative materials to withstand temperatures exceeding 2,000°C during atmospheric insertion.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1000, once: true });
+
+        // Nav Toggle
+        function toggleNav() {
+            const m = document.getElementById('navMenu');
+            m.style.display = (m.style.display === 'flex' ? 'none' : 'flex');
+        }
+
+        // TWR Calculator
+        function calcAero() {
+            const thrust = document.getElementById('thrustInput').value;
+            const mass = document.getElementById('massInput').value;
+            const twr = (thrust * 1000) / (mass * 9.806);
+            document.getElementById('twrResult').innerText = twr.toFixed(2);
+            
+            const status = document.getElementById('twrStatus');
+            if(twr < 1) {
+                status.innerText = "CRITICAL: NO LIFT-OFF POSSIBLE";
+                status.className = "text-[8px] mt-2 text-red-500";
+            } else {
+                status.innerText = "STATUS: GO FOR LIFT-OFF";
+                status.className = "text-[8px] mt-2 text-green-500";
+            }
+        }
+
+        // Telemetry Chart
+        const ctx = document.getElementById('aeroChart').getContext('2d');
+        const aeroChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 30}, (_, i) => i),
+                datasets: [{
+                    label: 'Altitude (KM)',
+                    data: Array.from({length: 30}, () => Math.random() * 400),
+                    borderColor: '#0066ff',
+                    borderWidth: 2,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 102, 255, 0.1)',
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#444', size: 8 } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Live Velocity Sim
+        setInterval(() => {
+            const v = 7.66 + (Math.random() * 0.02 - 0.01);
+            document.getElementById('v-data').innerText = v.toFixed(2) + " KM/S";
+            
+            aeroChart.data.datasets[0].data.shift();
+            aeroChart.data.datasets[0].data.push(v * 50); // Simulating altitude change
+            aeroChart.update('none');
+        }, 1000);
+
+        // Terminal
+        function runAeroCmd(e) {
+            if(e.key === 'Enter') {
+                const term = document.getElementById('aero-terminal');
+                const val = e.target.value.toLowerCase();
+                const log = document.createElement('p');
+                log.innerHTML = `<span class="text-blue-900">> ${val}</span>`;
+                term.appendChild(log);
+                
+                const res = document.createElement('p');
+                res.className = "text-white";
+                if(val === 'launch') res.innerText = "[CRITICAL] Igniting Main Engines in T-minus 10 seconds...";
+                else if(val === 'status') res.innerText = "[OK] All systems GREEN. Fuel 100%. Power 100%.";
+                else res.innerText = "[ERR] COMMAND_UNKNOWN. Check protocol.";
+                
+                term.appendChild(res);
+                e.target.value = "";
+                term.scrollTop = term.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
